@@ -15,11 +15,18 @@ def num_solve(tmax,Y0,c,m,g):
 def xnormal(t,vx,x0):
     x = vx*t+x0
     return x
+def asymptote(sol):
+    tol = 0.0046
+    for i in range(len(sol) - 1):
+        dif = sol[i][0] - sol[i+1][0]
+        if abs(dif) <= tol:
+            return sol[i + 1][0]
+    return None
 
 def ynormal(t,vy,y0,g):
     y = vy*t-(1/2)*g*t**2+y0
     return y
-def plot_position(sol,tmax,g,y0,x0,vx,vy):
+def plot_position_normal(sol,tmax,g,y0,x0,vx,vy):
     t = np.linspace(0, tmax, 1001)
     x_normal = xnormal(t,vx,x0)
     y_normal = ynormal(t,vy,y0,g)
@@ -31,8 +38,24 @@ def plot_position(sol,tmax,g,y0,x0,vx,vy):
     plt.legend(loc='best')
     ax.set_xlabel('X-position')
     ax.set_ylabel('Y-position')
-    ax.set_title('Projectile Motion with Quadratic Drag - Position')
-    plt.savefig('plot_position.png')
+    plt.savefig('plot_position_normal.png')
+
+def plot_position_asymptote(sol,tmax,g,y0,x0,vx,vy):
+    t = np.linspace(0, tmax, 1001)
+    x_normal = xnormal(t,vx,x0)
+    y_normal = ynormal(t,vy,y0,g)
+    x = sol[:, 0]
+    y = sol[:, 1]
+    fig, ax = plt.subplots()
+    ax.plot(x, y, label='Quadratic Drag, C = 0.2')
+    ax.plot(x_normal, y_normal, label='No Drag')
+    asy = asymptote(sol)
+    if asy is not None:
+        ax.axvline(x=asy, color='r', linestyle='--', label=f'Asymptote at {asy}')
+    plt.legend(loc='best')
+    ax.set_xlabel('X-position')
+    ax.set_ylabel('Y-position')
+    plt.savefig('plot_position_asymptote.png')
 
 def plot_position_c(tmax,g,y0,x0,vx,vy):
     m=10
@@ -85,7 +108,6 @@ def plot_position_c(tmax,g,y0,x0,vx,vy):
     plt.legend(loc='best')
     ax.set_xlabel('X-position')
     ax.set_ylabel('Y-position')
-    ax.set_title('Projectile Motion with Quadratic Drag - Position')
     plt.savefig('plot_position_c.png')
 
 def plot_velocity(sol,tmax):
@@ -95,16 +117,20 @@ def plot_velocity(sol,tmax):
     fig, ax = plt.subplots()
     ax.plot(t, vx, label='X-Velocity (C = 0.2)')
     ax.plot(t, vy, label='Y-Velocity (C = 0.2)')
+    ax.axhline(y=0, color='r', linestyle='--', label='Asymptote at 0')
+    ax.axhline(y=-22.15, color='g', linestyle='--', label='Asymptote at -22.15')
     plt.legend(loc='best')
     ax.set_xlabel('Time')
     ax.set_ylabel('Velocity')
-    ax.set_title('Projectile Motion with Quadratic Drag - Velocity')
     plt.savefig('plot_velocity.png')
 
 def main():
     sol = num_solve(10, [0, 0, 20, 20], 0.2, 10, 9.8)
-    plot_position(sol,10,9.8,0,0,20,20)
+    asymptote_value = asymptote(sol)
+    print("Asymptote value:", asymptote_value)
+    plot_position_normal(sol,10,9.8,0,0,20,20)
+    plot_position_asymptote(sol, 5, 9.8, 0, 0, 20, 20)
     plot_position_c(10, 9.8, 0, 0, 20, 20)
-    plot_velocity(sol,10)
+    plot_velocity(sol,15)
 
 main()
